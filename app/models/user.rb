@@ -18,9 +18,9 @@ class User < ActiveRecord::Base
   :through => :responses,
   :source => :choice)
 
-  has_one(:team,
+  belongs_to(:team,
   :class_name => "Team",
-  :foreign_key => :user_id,
+  :foreign_key => :team_id,
   :primary_key => :id)
 
   has_many(:poll_accesses,

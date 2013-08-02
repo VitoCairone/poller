@@ -4,6 +4,38 @@ class PollerUI
     @user = nil
   end
 
+  def create_poll
+    raise "You need to be logged in!" if @user.nil?
+
+    questions = []
+    choices = []
+
+    puts "How many questions does your poll have?"
+    num_questions = gets.chomp.to_i
+    num_questions.times do |i|
+      puts "What is question #{i+1}?"
+      questions << gets.chomp
+
+      puts "How many answer choices does it have?"
+      num_choices = gets.chomp.to_i
+      choices << []
+      num_choices.times do |j|
+        puts "What is answer choice #{j+1}?"
+        choices.last << gets.chomp
+      end
+    end
+
+    poll = Poll.create!({:user_id => @user.id})
+
+    questions.each_with_index do |qstn_text, i|
+      question = Question.create!({:body => qstn_text, :poll_id => poll.id})
+      choices[i].each do |choice|
+        Choice.create!({:choice_text => choice, :question_id => question.id})
+      end
+    end
+
+  end
+
   def login(name)
     @user = User.find_by_name(name)
     return if @user.nil?
@@ -33,7 +65,7 @@ class PollerUI
     .joins(:responders)
     .where("rid = ?",@user.id)
 
-    valid_poll_ids  = map_ids(Poll.all)
+    valid_poll_ids  = map_ids(@user.available_polls)
     valid_poll_ids -= taken_polls.map { |poll| poll.poll_id }
     valid_poll_ids -= map_ids(Poll.where("user_id = ?",@user.id))
 
